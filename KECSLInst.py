@@ -6,6 +6,7 @@ import pyelliptic
 import base64
 import lzma
 from hashlib import sha512
+import os
 
 AuthMode={
 'eccpuk', #ECC publickey
@@ -21,6 +22,8 @@ class KKUniCtrlConsole_KECSLInst(object):
     """docstring for KKUniCtrlConsole_KECSLInst"""
     def __init__(self):
         super(KKUniCtrlConsole_KECSLInst, self).__init__()
+        InstConf={}
+        Runtimevar={}
         
     InstConf={}
     Runtimevar={}
@@ -73,7 +76,7 @@ class KKUniCtrlConsole_KECSLInst(object):
     def eccpukauth_initkeyeccobj(self):
         if self.InstConf['Autheccpuk'] =='' or self.InstConf['Autheccpvk']=='':
             raise Exception('eccpukauth key not set')
-        pyelliptic.ECC(pubkey=base64.b64decode(self.InstConf['Autheccpuk'].decode('utf8')),privkey=base64.b64decode(self.InstConf['Autheccpvk'].decode('utf8')),curve='secp521r1')
+        
         
 
     def eccpukauth_makechallenge(self):
@@ -108,6 +111,7 @@ class KKUniCtrlConsole_KECSLInst(object):
         
 
     def eccpukauth_finishchallenge(self,challengeJSON):
+        eccauthobj=pyelliptic.ECC(pubkey=base64.b64decode(self.InstConf['Autheccpuk'].decode('utf8')),privkey=base64.b64decode(self.InstConf['Autheccpvk'].decode('utf8')),curve='secp521r1')
         challenge=json.loads(challengeJSON)
 
         if challenge['type']==self.InstConf['authmode']:
@@ -117,7 +121,7 @@ class KKUniCtrlConsole_KECSLInst(object):
                 chall=json.loads(challJSON)
                 if chall['auth_provider_uuid']==Runtimevar['Ruuid']:
                     if  not (chall['time']>=time.time()+30 and chall['time']<=time.time()-20):
-                        sigureb=bRuntimevar['eccauthobj'].sign(base64.b64decode(challJSONb64.encode('utf8')))
+                        sigureb=eccauthobj.sign(base64.b64decode(challJSONb64.encode('utf8')))
                         sigureb64=base64.b64encode(sigureb).decode("utf-8")
                         signresp={}
                         signresp['signedobj']=sigureb64
@@ -237,20 +241,17 @@ class KKUniCtrlConsole_KECSLInst(object):
     def kecsl_makerecvconnresp(self,connreq):
         recvconnresp={}
         recvconnresp['Stat']='Succ'
-        self.Runtimevar['Lnxtiv']=pyelliptic.Cipher.gen_IV('aes-256-cfb')
-        self.Runtimevar['ivlen']=len(self.Runtimevar['Lnxtiv'])
-        recvconnresp['nxtiv']=base64.b64encode(self.Runtimevar['Lnxtiv']).decode("utf-8")
-        self.Runtimevar['cslskey']=sha512(os.urandom(65536))
-        recvconnresp['key']=base64.b64encode(recvconnresp['key']).decode("utf-8")
+        self.Runtimevar['cslskey']=sha512(os.urandom(65536)).digest()
+        recvconnresp['key']=base64.b64encode(self.Runtimevar['cslskey']).decode("utf-8")
         recvconnresp['Cnduuid']=self.Runtimevar['uuid']
         self.Runtimevar['Rauthmode']=connreq['authmode']
         return recvconnresp
 
     def kecsl_progrecvconnresp(self,recvconnresp):
         if recvconnresp['Stat']=='Succ':
-            self.Runtimevar['ivlen']=len(recvconnresp['nxtiv'])
-            self.Runtimevar['Rnxtiv']=base64.b64decode(recvconnresp['nxtiv'].encode('utf8'))
-            self.Runtimevar['cslskey']=base64.b64decode(self.Runtimevar['cslskey'].encode('utf8'))
+            
+            
+            self.Runtimevar['cslskey']=base64.b64decode(recvconnresp['key'].encode('utf8'))
             self.Runtimevar['Ruuid']=recvconnresp['Cnduuid']
             return 1
 
@@ -258,28 +259,30 @@ class KKUniCtrlConsole_KECSLInst(object):
             raise Exception("Remote respond show non-Succ resp")
 
     def kecsl_decslob(self,data):
-        decer=pyelliptic.Cipher(self.Runtimevar['cslskey'], self.Runtimevar['Lnxtiv'], 0, ciphername='aes-256-cfb')
-        self.Runtimevar['Rlstiv']=self.Runtimevar['Rnxtiv']
-        self.Runtimevar['Rnxtiv']=''
-        cslobl=decer.ciphering(data)
-        cslob=lzma.decompress(cslobl,format=lzma.FORMAT_ALONE)
-        self.Runtimevar['Rnxtiv']=cslob[:self.Runtimevar['ivlen']]
-        cslo=cslob[self.Runtimevar['ivlen']:]
+        
+        iv=data[:pyelliptic.Cipher.get_blocksize('aes-256-cfb')]
+        decer=pyelliptic.Cipher(self.Runtimevar['cslskey'], iv, 0, ciphername='aes-256-cfb')
+        cslobl=decer.ciphering(data[pyelliptic.Cipher.get_blocksize('aes-256-cfb'):])
+        
+        cslo=lzma.decompress(cslobl,format=lzma.FORMAT_ALONE)
+
+        
+
         return cslo
 
 
     def kecsl_encslob(self,data):
-        if self.Runtimevar['Rnxtiv'] == "":
-            raise Exception("no ack")
+        
         cslob=data
-        self.Runtimevar['Lnxtiv']=pyelliptic.Cipher.gen_IV('aes-256-cfb')
-        cslob=self.Runtimevar['Lnxtiv']+cslob
+        iv=pyelliptic.Cipher.gen_IV('aes-256-cfb')
+        
         cslobl=lzma.compress(cslob,format=lzma.FORMAT_ALONE)
-        encer=pyelliptic.Cipher(self.Runtimevar['cslskey'],self.Runtimevar['Rnxtiv'],1,ciphername='aes-256-cfb')
-        self.Runtimevar['Rlstiv']=self.Runtimevar['Rnxtiv']
-        self.Runtimevar['Rnxtiv']=''
+        encer=pyelliptic.Cipher(self.Runtimevar['cslskey'],iv,1,ciphername='aes-256-cfb')
+
         cslobole=encer.ciphering(cslobl)
-        return cslobole
+        csloboleiv=iv+cslobole
+        
+        return csloboleiv
 
 
 
@@ -288,10 +291,10 @@ class KKUniCtrlConsole_KECSLInst(object):
         try:
 
             connreqJSON=self.kecsl_decsl(connreqcsl)
-            connreq=json.loads(connreq)
+            connreq=json.loads(connreqJSON)
             self.kecsl_checkconnreq(connreq)
             self.kecsl_progressconnreq(connreq)
-            connresp=kself.ecsl_makerecvconnresp(connreq)
+            connresp=self.kecsl_makerecvconnresp(connreq)
             connrespcsl=self.kecsl_encsl(json.dumps(connresp))
             return connrespcsl
         except Exception:
@@ -320,17 +323,22 @@ class KKUniCtrlConsole_KECSLInst(object):
             pass
 
     def kecsl_decsl(self,data):
-        
-        cslbl=self.Runtimevar['Conneccobj'].decrypt(data)
+        Conneccobj=pyelliptic.ECC(pubkey=base64.b64decode(self.InstConf['Leccpuk'].encode('utf8')),privkey=base64.b64decode(self.InstConf['Leccpvk'].encode('utf8')),curve='secp521r1')
+        cslbl=Conneccobj.decrypt(data)
         cslb=lzma.decompress(cslbl,format=lzma.FORMAT_ALONE)
-        csl==cslb.decode('utf8')
+        csl=cslb.decode('utf8')
         return csl
         
 
     def kecsl_encsl(self,data):
+        Conneccobj=pyelliptic.ECC(pubkey=base64.b64decode(self.InstConf['Leccpuk'].encode('utf8')),privkey=base64.b64decode(self.InstConf['Leccpvk'].encode('utf8')),curve='secp521r1')
         cslb=data.encode('utf8')
         cslbl=lzma.compress(cslb,format=lzma.FORMAT_ALONE)
-        cslble=self.Runtimevar['Conneccobj'].encrypt(cslbl,base64.b64decode(self.InstConf['Reccpuk'].encode('utf8')))
+        if self.InstConf['connmode']=='pst':
+            cslble=Conneccobj.encrypt(cslbl,base64.b64decode(self.InstConf['Reccpuk'].encode('utf8')))
+        else:
+            cslble=Conneccobj.encrypt(cslbl,base64.b64decode(self.Runtimevar['Reccpuk'].encode('utf8')))
+        
         return cslble
         
 
@@ -343,36 +351,30 @@ class KKUniCtrlConsole_KECSLInst(object):
     def kecsl_initeccobj(self):
         if self.InstConf['Leccpuk']=='' or self.InstConf['Leccpvk']=='':
             raise Exception('KECSL key not set')
-        self.Runtimevar['Conneccobj']=pyelliptic.ECC(pubkey=base64.b64decode(self.InstConf['Leccpuk'].encode('utf8')),privkey=base64.b64decode(self.InstConf['Leccpvk'].encode('utf8')),curve='secp521r1')
 
     def InitRuntime(self):
         self.Runtimevar['uuid']=str(uuid.uuid4())
-        self.Runtimevar['Rnxtiv'] = ""
-        self.Runtimevar['Lnxtiv'] = ""
+        self.Runtimevar['Ruuid'] = ""
+        self.Runtimevar['lastrecv512']=''
         self.kecsl_initeccobj()
         if self.InstConf['authmode']=='eccpuk' and self.InstConf['connmode']=='pst':
             self.eccpukauth_initkeyeccobj()
 
     def kecsl_send(self,data):
-        if self.Runtimevar['Lnxtiv']=="":
-            raise Exception('No successful ack')
 
         datacsl=self.kecsl_encslob(data)
         self.Runtimevar["lastsent"]=datacsl
         return datacsl
 
     def kecsl_receive(self,data):
-        if kecsl_isrereceive(data)==0:
-            datadecsl=self.kecsl_decsl(data)
+        if self.kecsl_isrereceive(data)==0:
+            datadecsl=self.kecsl_decslob(data)
             return True,datadecsl
 
         else:
             return False,self.Runtimevar['lastsent']
 
     def kecsl_resend(self):
-        if self.Runtimevar['Lnxtiv']!="":
-            return None
-        else:
             return self.Runtimevar["lastsent"]
 
     def auth_makeauthresult(self,res):
@@ -397,7 +399,7 @@ class KKUniCtrlConsole_KECSLInst(object):
     def Connect(self):
         if self.InstConf['connmode']=="pst":
             if self.Runtimevar['uuid']!="":
-                if not 'Ruuid' in self.Runtimevar.keys():
+                if not self.Runtimevar['Ruuid']!='':
                     return self.kecsl_makeconn()
                 else:
                     raise Exception('Already Connected')
@@ -471,5 +473,8 @@ class KKUniCtrlConsole_KECSLInst(object):
 
     def SetPasswsCallback(self,func):
         self.Runtimevar['callback_GetPasswdHashByID']=func
+
+    def OnReceiveConnectionReply(self,data):
+        return self.kecsl_recvconnresp(data)
 
         
