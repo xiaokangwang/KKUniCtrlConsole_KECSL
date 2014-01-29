@@ -70,7 +70,7 @@ class KKUniCtrlConsole_KECSLInst(object):
         InstConf['Autheccpvk']=base64.b64encode(pyelliptic.get_privkey())
 
     def eccpukauth_initkeyeccobj():
-        pyelliptic.ECC(pubkey=base64.b64decode(InstConf['Autheccpuk']),base64.b64decode(InstConf['Autheccpvk']),curve='secp521r1')
+        pyelliptic.ECC(pubkey=base64.b64decode(InstConf['Autheccpuk']),privkey=base64.b64decode(InstConf['Autheccpvk']),curve='secp521r1')
         pass
         
 
@@ -114,7 +114,7 @@ class KKUniCtrlConsole_KECSLInst(object):
                 challJSON=base64.b64decode(challJSONb64).decode('utf8')
                 chall=json.loads(challJSON)
                 if chall['auth_provider_uuid']==Runtimevar['Ruuid']:
-                    if  not (chall['time']>=time.time()+30&&chall['time']<=time.time()-20):
+                    if  not (chall['time']>=time.time()+30 and chall['time']<=time.time()-20):
                         sigureb=bRuntimevar['eccauthobj'].sign(base64.b64decode(challJSONb64))
                         sigureb64=base64.b64encode(sigureb)
                         signresp={}
@@ -180,7 +180,7 @@ class KKUniCtrlConsole_KECSLInst(object):
                 challJSON=base64.b64decode(challJSONb64).decode('utf8')
                 chall=json.loads(challJSON)
                 if chall['auth_provider_uuid']==Runtimevar['Ruuid']:
-                    if !(chall['time']>=time.time()+30&&chall['time']<=time.time()-20):
+                    if not(chall['time']>=time.time()+30 and chall['time']<=time.time()-20):
                         
                         signingobjhash=sha512(base64.b64decode(challJSONb64)).hexdigest()
                         localpwdobjhash=InstConf['passwdhash']
@@ -355,12 +355,12 @@ class KKUniCtrlConsole_KECSLInst(object):
         return datacsl
 
     def kecsl_receive(data):
-        if !kecsl_isrereceive(data):
+        if kecsl_isrereceive(data)==0:
             datadecsl=kecsl_decsl(data)
-            return datadecsl
+            return True,datadecsl
 
         else:
-            return None
+            return False,Runtimevar['lastsent']
 
     def kecsl_resend():
         if Runtimevar['Lnxtiv']!="":
@@ -381,7 +381,7 @@ class KKUniCtrlConsole_KECSLInst(object):
 
     def auth_checkauthresult(rescsl):
         authresult=json.loads(kecsl_encsl(rescsl))
-        if authresult['stat']='Succ':
+        if authresult['stat']=='Succ':
             return True
         else:
             return False
