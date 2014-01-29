@@ -62,7 +62,8 @@ class KKUniCtrlConsole_KECSLInst(object):
         else:
             raise Exception("Unknown connmode.")
 
-
+    def ExportConfig(self):
+        return self.InstConf
 
     def eccpukauth_genkey():
         pyelliptic.ECC(curve='secp521r1')
