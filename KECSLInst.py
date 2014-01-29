@@ -82,11 +82,12 @@ class KKUniCtrlConsole_KECSLInst(object):
     def eccpukauth_makechallenge(self):
         challenge={}
         challengebody={}
-        challengebody['auth_uuid']=uuid.uuid4()
+        challengebody['auth_uuid']=str(uuid.uuid4())
         challengebody['auth_time']=time.time()
-        Runtimevar['auth_time']=time.time()
-        challengebody['auth_provider_uuid']=Runtimevar['uuid']
+        self.Runtimevar['auth_time']=time.time()
+        challengebody['auth_provider_uuid']=self.Runtimevar['uuid']
         challJSON=json.dumps(challengebody)
+        self.Runtimevar['challengebody']=challJSON
         challJSONb64=base64.b64encode(challJSON.encode('utf8')).decode("utf-8")
         challenge['signobj']=challJSONb64
         challenge['type']='eccpuk'
@@ -94,33 +95,36 @@ class KKUniCtrlConsole_KECSLInst(object):
         return challengeJSON
         
         
-    def eccpukauth_verifychallenge(self,signrespJSON):
-        if Runtimevar['auth_time'] + 30 > time.time():
+    def eccpukauth_verifychallenge(self,signresp):
+        if self.Runtimevar['auth_time'] + 30 < time.time():
             return False
 
-        signresp=json.loads(signrespJSON)
+        
 
         Rkeyb64=self.Runtimevar['callback_GetEccPukByID'](signresp['signor'])   
+        
         if Rkeyb64 is not None:
             Rkey=base64.b64decode(Rkeyb64.encode('utf8'))
-            signedobj=base64.b64decode(signresp['signedobj'].encode('utf8'))
-            result=pyelliptic.ECC(publickey=Rkey).verify(signedobj,Runtimevar['challengebody'],curve='secp521r1')
-            return result
+            signedobj=base64.b64decode(signresp['signedobj'])
+            result=pyelliptic.ECC(pubkey=Rkey,curve='secp521r1').verify(signedobj,self.Runtimevar['challengebody'].encode('utf8'))
+            if result:
+                return signresp['signor']
+            else:
+                False
 
 
         
 
-    def eccpukauth_finishchallenge(self,challengeJSON):
-        eccauthobj=pyelliptic.ECC(pubkey=base64.b64decode(self.InstConf['Autheccpuk'].decode('utf8')),privkey=base64.b64decode(self.InstConf['Autheccpvk'].decode('utf8')),curve='secp521r1')
-        challenge=json.loads(challengeJSON)
+    def eccpukauth_finishchallenge(self,challenge):
+        eccauthobj=pyelliptic.ECC(pubkey=base64.b64decode(self.InstConf['Autheccpuk'].encode('utf8')),privkey=base64.b64decode(self.InstConf['Autheccpvk'].encode('utf8')),curve='secp521r1')
 
         if challenge['type']==self.InstConf['authmode']:
             try:
                 challJSONb64=challenge['signobj']
-                challJSON=base64.b64decode(challJSONb64.encode('utf8'))
+                challJSON=base64.b64decode(challJSONb64).decode('utf8')
                 chall=json.loads(challJSON)
-                if chall['auth_provider_uuid']==Runtimevar['Ruuid']:
-                    if  not (chall['time']>=time.time()+30 and chall['time']<=time.time()-20):
+                if chall['auth_provider_uuid']==self.Runtimevar['Ruuid']:
+                    if  not (chall['auth_time']>=time.time()+30 and chall['auth_time']<=time.time()-20):
                         sigureb=eccauthobj.sign(base64.b64decode(challJSONb64.encode('utf8')))
                         sigureb64=base64.b64encode(sigureb).decode("utf-8")
                         signresp={}
@@ -131,17 +135,18 @@ class KKUniCtrlConsole_KECSLInst(object):
 
                         
 
-            except Exception:
+            except Exception :
                 pass
             else:
                 pass
 
-    def passwdauth_makechallenge(self,challenge):
+    def passwdauth_makechallenge(self):
         challenge={}
         challengebody={}
-        challengebody['auth_uuid']=uuid.uuid4()
+        challengebody['auth_uuid']=str(uuid.uuid4())
         challengebody['auth_time']=time.time()
-        challengebody['auth_provider_uuid']=Runtimevar['uuid']
+        self.Runtimevar['auth_time']=challengebody['auth_time']
+        challengebody['auth_provider_uuid']=str(self.Runtimevar['uuid'])
         challb=json.dumps(challengebody)
         self.Runtimevar['challengebody']=challb.encode('utf8')
         challb64=base64.b64encode(challb.encode('utf8')).decode("utf-8")
@@ -151,55 +156,49 @@ class KKUniCtrlConsole_KECSLInst(object):
         return challengeJSON
         
 
-    def passwdauth_verifychallenge(self,challenge):
-        if Runtimevar['auth_time'] + 30 > time.time():
+    def passwdauth_makebund(self,signobjb64,passwdhash):
+        signingobjhash=sha512(signobjb64).hexdigest()
+        localpwdobjhash=passwdhash
+        finalingtohash=''
+
+        for i in range(0,len(signingobjhash)-1):
+            finalingtohash += signingobjhash[i] + localpwdobjhash[i]
+
+        sigureb=sha512(finalingtohash.encode('utf8')).hexdigest()
+
+        return sigureb
+
+    def passwdauth_verifychallenge(self,signresp):
+        if self.Runtimevar['auth_time'] +30 < time.time():
             return False
 
-        signresp=json.loads(signrespJSON)
+        
 
-        Rkeyb64=self.Runtimevar['callback_GetPasswdHashByID'](signresp['signor'])   
-        if Rkeyb64 is not None:
-            Rkey=base64.b64decode(Rkeyb64.encode('utf8'))
-            signedobj=base64.b64decode(signresp['signedobj'].encode('utf8'))
-            signingobjhash=sha512(base64.b64decode(challJSONb64)).hexdigest()
-            localpwdobjhash=self.InstConf['passwdhash']
-            finalingtohash=''
-
-            for i in range(0,len(signingobjhash)-1):
-                finalingtohash += signingobjhash[i] + localpwdobjhash[i]
-
-            reqsig=sha512(finalingtohash.encode('utf8')).hexdigest()
-            incomingobj=signedobj.decode('utf8')
+        keyhash=self.Runtimevar['callback_GetPasswdHashByID'](signresp['signor'])   
+        if keyhash is not None:
+            incomingobj=signresp['signedobj']
+            reqsig=self.passwdauth_makebund(self.Runtimevar['challengebody'],keyhash)
             if reqsig==incomingobj:
-                return True
+                return signresp['signor']
             else:
                 return False
 
 
 
-    def passwdauth_finishchallenge(self,challengeJSON):
-        challenge=json.loads(challengeJSON)
+    def passwdauth_finishchallenge(self,challenge):
 
         if challenge['type']==self.InstConf['authmode']:
             try:
                 challJSONb64=challenge['signobj']
-                challJSON=base64.b64decode(challJSONb64.encode('utf8'))
+                challJSON=base64.b64decode(challJSONb64).decode('utf8')
                 chall=json.loads(challJSON)
-                if chall['auth_provider_uuid']==Runtimevar['Ruuid']:
-                    if not(chall['time']>=time.time()+30 and chall['time']<=time.time()-20):
+                if chall['auth_provider_uuid']==self.Runtimevar['Ruuid']:
+                    if not(chall['auth_time']>=time.time()+30 and chall['auth_time']<=time.time()-20):
                         
-                        signingobjhash=sha512(base64.b64decode(challJSONb64)).hexdigest()
                         localpwdobjhash=self.InstConf['passwdhash']
-                        finalingtohash=''
-
-                        for i in range(0,len(signingobjhash)-1):
-                            finalingtohash += signingobjhash[i] + localpwdobjhash[i]
-
-                        sigureb=sha512(finalingtohash.encode('utf8')).hexdigest()
-
-                        sigureb64=base64.b64encode(sigureb).decode("utf-8")
+                        sigureb=self.passwdauth_makebund(base64.b64decode(challJSONb64),localpwdobjhash)
                         signresp={}
-                        signresp['signedobj']=sigureb64
+                        signresp['signedobj']=sigureb
                         signresp['signor']=self.InstConf['authas']
                         signrespJSON=json.dumps(signresp)
                         return signrespJSON
@@ -303,11 +302,11 @@ class KKUniCtrlConsole_KECSLInst(object):
             pass
 
     def kecsl_isrereceive(self,data):
-        thishash=sha512(data)
+        thishash=data
         if thishash==self.Runtimevar['lastrecv512']:
             return 1
         else:
-            self.Runtimevar['lastrecv512']=sha512(data)
+            self.Runtimevar['lastrecv512']=thishash
             return 0
 
         
@@ -355,7 +354,7 @@ class KKUniCtrlConsole_KECSLInst(object):
     def InitRuntime(self):
         self.Runtimevar['uuid']=str(uuid.uuid4())
         self.Runtimevar['Ruuid'] = ""
-        self.Runtimevar['lastrecv512']=''
+        self.Runtimevar['lastrecv512']=None
         self.kecsl_initeccobj()
         if self.InstConf['authmode']=='eccpuk' and self.InstConf['connmode']=='pst':
             self.eccpukauth_initkeyeccobj()
@@ -372,7 +371,7 @@ class KKUniCtrlConsole_KECSLInst(object):
             return True,datadecsl
 
         else:
-            return False,self.Runtimevar['lastsent']
+            return False,None
 
     def kecsl_resend(self):
             return self.Runtimevar["lastsent"]
@@ -389,7 +388,7 @@ class KKUniCtrlConsole_KECSLInst(object):
         return self.kecsl_encsl(json.dumps(authresult))
 
     def auth_checkauthresult(self,rescsl):
-        authresult=json.loads(self.kecsl_encsl(rescsl))
+        authresult=json.loads(self.kecsl_decsl(rescsl))
         if authresult['stat']=='Succ':
             return True
         else:
@@ -436,11 +435,11 @@ class KKUniCtrlConsole_KECSLInst(object):
     def OnAskForAuth(self,datacsl):
         data=self.kecsl_decsl(datacsl)
         Authd=json.loads(data)
-        if self.Runtimevar['authmode']=='eccpuk':
+        if self.Runtimevar['Rauthmode']=='eccpuk':
             challenge=self.eccpukauth_finishchallenge(Authd)
 
 
-        if self.Runtimevar['authmode']=='passwd':
+        if self.Runtimevar['Rauthmode']=='passwd':
             challenge=self.passwdauth_finishchallenge(Authd)
 
         challengedcsl=self.kecsl_encsl(challenge)
@@ -449,11 +448,11 @@ class KKUniCtrlConsole_KECSLInst(object):
     def OnReceiveAuth(self,datacsl):
         data=self.kecsl_decsl(datacsl)
         Authd=json.loads(data)
-        if self.Runtimevar['authmode']=='eccpuk':
+        if self.Runtimevar['Rauthmode']=='eccpuk':
             result=self.eccpukauth_verifychallenge(Authd)
 
 
-        if self.Runtimevar['authmode']=='passwd':
+        if self.Runtimevar['Rauthmode']=='passwd':
             result=self.passwdauth_verifychallenge(Authd)
 
         
