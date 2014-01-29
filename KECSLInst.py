@@ -52,13 +52,13 @@ class KKUniCtrlConsole_KECSLInst(object):
                     if authmode == "passwd":
                         pass
                     
-                    InstConf['Reccpuk']=''
-                    InstConf['authmode']=authmode
+                    self.InstConf['Reccpuk']=''
+                    self.InstConf['authmode']=authmode
                 else:
                     raise Exception("Unknown authmode.")
-            InstConf['Leccpuk']=''
-            InstConf['Leccpvk']=''
-            InstConf['connmode']=connmode
+            self.InstConf['Leccpuk']=''
+            self.InstConf['Leccpvk']=''
+            self.InstConf['connmode']=connmode
         else:
             raise Exception("Unknown connmode.")
 
