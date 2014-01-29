@@ -66,9 +66,9 @@ class KKUniCtrlConsole_KECSLInst(object):
         return self.InstConf
 
     def eccpukauth_genkey(self):
-        pyelliptic.ECC(curve='secp521r1')
-        self.InstConf['Autheccpuk']=base64.b64encode(pyelliptic.get_pubkey())
-        self.InstConf['Autheccpvk']=base64.b64encode(pyelliptic.get_privkey())
+        ecckeyobj=pyelliptic.ECC(curve='secp521r1')
+        self.InstConf['Autheccpuk']=base64.b64encode(ecckeyobj.get_pubkey())
+        self.InstConf['Autheccpvk']=base64.b64encode(ecckeyobj.get_privkey())
 
     def eccpukauth_initkeyeccobj(self):
         if self.InstConf['Autheccpuk'] =='' or self.InstConf['Autheccpvk']=='':
