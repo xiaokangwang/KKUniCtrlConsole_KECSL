@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import base64
 import nose
-import KECSLInst
+import kecsl.KECSLInst
 import pyelliptic
 import lzma
 from hashlib import sha512
@@ -10,23 +10,23 @@ from hashlib import sha512
 
 
 def test_KECSLInst_class_Instancify():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     assert(theKECSLInst is not None)
 
 def test_KECSLInst_class_Initconfig_server():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     theKECSLInst.InitConfig('ltn')
 
 def test_KECSLInst_class_Initconfig_connector_passwdauth():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     theKECSLInst.InitConfig('pst','passwd')
 
 def test_KECSLInst_class_Initconfig_connector_eccpukauth():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     theKECSLInst.InitConfig('pst','eccpuk')
 
 def test_KECSLInst_class_Initconfig_connector_wrong_mod():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     try:
         theKECSLInst.InitConfig('wrong_test')
     except Exception as err:
@@ -35,7 +35,7 @@ def test_KECSLInst_class_Initconfig_connector_wrong_mod():
         assert(False)
 
 def test_KECSLInst_class_Initconfig_connector_wrong_auth():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     try:
         theKECSLInst.InitConfig('pst','wrong_test')
     except Exception as err:
@@ -44,23 +44,23 @@ def test_KECSLInst_class_Initconfig_connector_wrong_auth():
         assert(False)
 
 def test_KECSLInst_class_Exportconfig_initpasswd():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     theKECSLInst.InitConfig('pst','passwd')
     assert(theKECSLInst.ExportConfig()=={'Leccpuk': '', 'connmode': 'pst', 'Reccpuk': '', 'Leccpvk': '', 'authmode': 'passwd'})
 
 def test_KECSLInst_class_Exportconfig_initeccpuk():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     theKECSLInst.InitConfig('pst','eccpuk')
     assert(theKECSLInst.ExportConfig()=={'authmode': 'eccpuk', 'Leccpvk': '', 'connmode': 'pst', 'Reccpuk': '', 'Leccpuk': ''})
 
 def test_KECSLInst_class_Setconfig():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     theKECSLInst.InitConfig('pst','eccpuk')
     theKECSLInst.SetConfig('test_testconfig','test_testconfig_val')
     assert(theKECSLInst.ExportConfig()=={'authmode': 'eccpuk', 'Leccpvk': '', 'connmode': 'pst', 'Reccpuk': '', 'Leccpuk': '','test_testconfig':'test_testconfig_val'})
 
 def test_KECSLInst_class_KECSL_MakeEccKey():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     theKECSLInst.InitConfig('ltn')
     theKECSLInst.GenKECSLkey()
     config=theKECSLInst.ExportConfig()
@@ -68,7 +68,7 @@ def test_KECSLInst_class_KECSL_MakeEccKey():
     assert(config['Leccpuk']!='')
 
 def test_KECSLInst_class_eccauth_MakeEccKey():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     theKECSLInst.InitConfig('pst','eccpuk')
     theKECSLInst.Geneccauthkey()
     config=theKECSLInst.ExportConfig()
@@ -76,42 +76,42 @@ def test_KECSLInst_class_eccauth_MakeEccKey():
     assert(config['Autheccpvk']!='')
 
 def test_KECSLInst_class_Loadconfig():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     theKECSLInst.LoadConfig({'authmode': 'eccpuk', 'Leccpvk': '', 'connmode': 'pst', 'Reccpuk': '', 'Leccpuk': '','test_testconfig':'test_testconfig_val','test_testconfig2':'test_testconfig_val2'})
     assert(theKECSLInst.ExportConfig()=={'authmode': 'eccpuk', 'Leccpvk': '', 'connmode': 'pst', 'Reccpuk': '', 'Leccpuk': '','test_testconfig':'test_testconfig_val','test_testconfig2':'test_testconfig_val2'})
 
 def test_KECSLInst_class_ltninitruntime():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInst.InitRuntime()
 
 def test_KECSLInst_class_pst_initruntime_passwd_auth():
-    theKECSLInst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInst.GenKECSLkey()
     theKECSLInst.InitRuntime()
 
 def test_KECSLInst_class_initbothltnpst():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
     theKECSLInstPst.InitRuntime()
 
 def test_KECSLInst_class_makeconnectreq():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -135,12 +135,12 @@ def test_lzmautl():
     assert(lzmatlu==lzmat)
 
 def test_KECSLInst_class_asencey_varopera():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -156,12 +156,12 @@ def test_KECSLInst_class_asencey_varopera():
 
 
 def test_KECSLInst_class_asencey():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -174,12 +174,12 @@ def test_KECSLInst_class_asencey():
 
 
 def test_KECSLInst_class_submitconnectreq():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -194,12 +194,12 @@ def test_KECSLInst_class_submitconnectreq():
     assert(connrespdata is not None)
 
 def test_KECSLInst_class_progress_connreqsign():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -218,12 +218,12 @@ def test_KECSLInst_class_progress_connreqsign():
     assert(result)
 
 def test_KECSLInst_class_progress_senddata():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -254,12 +254,12 @@ def test_KECSLInst_class_progress_senddata():
     assert(deencdata==datatosend)
 
 def test_KECSLInst_class_progress_senddataandreply():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -301,12 +301,12 @@ def test_KECSLInst_class_progress_senddataandreply():
     assert(replydata==datatoreply)
 
 def test_KECSLInst_class_progress_senddatadoubleandreply():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -361,12 +361,12 @@ def test_KECSLInst_class_progress_senddatadoubleandreply():
 
 
 def test_KECSLInst_class_progress_senddataAndResendandreply():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -423,12 +423,12 @@ def test_hashlib():
     assert(sha512('passwddemo'.encode('utf8')).hexdigest()=='f3c13cfdd4567d86c7356cf546831ed48ed967a0ef1e95993760c91405d974b129d852b7a7e3192376844f9d7bdbe731717d45602ff80acfa775064b0249db46')
 
 def test_KECSLInst_class_progress_senddataAndResendandreply_andauth1():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -490,12 +490,12 @@ def test_KECSLInst_class_progress_senddataAndResendandreply_andauth1():
 
 
 def test_KECSLInst_class_progress_senddataAndResendandreply_andauth2():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -565,12 +565,12 @@ def test_KECSLInst_class_progress_senddataAndResendandreply_andauth2():
 
 
 def test_KECSLInst_class_progress_senddataAndResendandreply_andauth3():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
@@ -653,12 +653,12 @@ def test_KECSLInst_class_progress_senddataAndResendandreply_andauth3():
 
 
 def test_KECSLInst_class_progress_eccauth():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'eccpuk', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=','Autheccpvk': 'AswAQgFIvbSfTDY8vi7ynRYJedAHQFKnHmTj7wce+LGBgUwU7MQlVrPwyyAaWgIZ0b0eSLlsn/P1vN51ckzmSHjL2d3dsQ==','Autheccpuk': 'AswAQgGBpfKSe7dBwPaqckWp8ey0wJnLgp+EjiOPFsFKWjIyV8HsADWKGpcLCqNE3ZrYGY0bIifEJI1l9O3u92qfXmQGFQBCARRRw+q8otHvr1xMAFWb3Wno1tw836K0wczrkBGnPqF2URrUJKkl9uuCDDbOiP2rVWDqqJqwTYnNDzbSO708AytF'})
     theKECSLInstPst.GenKECSLkey()
@@ -705,12 +705,12 @@ def test_KECSLInst_class_progress_eccauth():
 
 
 def test_KECSLInst_class_progress_eccauth_shouldfail():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'eccpuk', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=','Autheccpvk': 'AswAQgFIvbSfTDY8vi7ynRYJedAHQFKnHmTj7wce+LGBgUwU7MQlVrPwyyAaWgIZ0b0eSLlsn/P1vN51ckzmSHjL2d3dsQ==','Autheccpuk': 'AswAQgGBpfKSe7dBwPaqckWp8ey0wJnLgp+EjiOPFsFKWjIyV8HsADWKGpcLCqNE3ZrYGY0bIifEJI1l9O3u92qfXmQGFQBCARRRw+q8otHvr1xMAFWb3Wno1tw836K0wczrkBGnPqF2URrUJKkl9uuCDDbOiP2rVWDqqJqwTYnNDzbSO708AytF'})
     theKECSLInstPst.GenKECSLkey()
@@ -757,12 +757,12 @@ def test_KECSLInst_class_progress_eccauth_shouldfail():
 
 
 def test_KECSLInst_class_progress_senddataAndResendandreply_andauth3_shouldfail():
-    theKECSLInstltn=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstltn=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstltn.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q=', 'connmode': 'ltn', 'Leccpvk': 'AswAQgG5NbwMh7P/Wi1m6ZwzPJ3ewYJT9T0jciFDRDKxKqG4jfi7podAUhZjx7tg5heaq2fC0/fhOCFJ13ZHPKq+BWvuDQ==', 'authmode': 'eccpuk', 'Reccpuk': ''})
     theKECSLInstltn.InitRuntime()
 
-    theKECSLInstPst=KECSLInst.KKUniCtrlConsole_KECSLInst()
+    theKECSLInstPst=kecsl.KECSLInst.KKUniCtrlConsole_KECSLInst()
     #this key for test purpose only
     theKECSLInstPst.LoadConfig({'test_testconfig': 'test_testconfig_val', 'Leccpvk': '','Leccpuk': '', 'connmode': 'pst', 'authmode': 'passwd', 'Reccpuk': 'AswAQVkgk55c6FMiA7ufhREI20LgGIkoecVtebmRrQLks7rNCL9QIzV84iY+L0GUf0UrAa7koAbOjSI+kVSYcX4oPb4AAEIB7Di87TRbXXt+Ef32eSQwovsgecQyJxZMzvHRfqLz5vWe8T9czdgpSZIhjQ688MlqIXPMELASGHUl31TuThqmr6Q='})
     theKECSLInstPst.GenKECSLkey()
