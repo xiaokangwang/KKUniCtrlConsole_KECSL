@@ -110,7 +110,7 @@ class KKUniCtrlConsole_KECSLInst(object):
             if result:
                 return signresp['signor']
             else:
-                False
+                return False
 
 
         
